@@ -37,6 +37,7 @@ public:
     int m_loop_num; // the loop number of distribute and gather init m_loop_num=0
 
     MPI_Status m_mpi_status;
+    MPI_Request *m_mpi_request;
 
     char* m_key;
     int m_key_length;
@@ -49,7 +50,8 @@ public:
 
     FILE *m_log_file;
 
-    MPI_Task_Data(int argc,char* argv[]);
+    MPI_Task_Data();
+//    MPI_Task_Data(int argc,char* argv[]);
 
     MPI_Task_Data(MPI_Task_Data& mpi_task_data);
     MPI_Task_Data& operator=(MPI_Task_Data& mpi_task_data);
@@ -69,6 +71,7 @@ public:
 
 // for a test, deleted when     
     int init_random(); //just for test, init a FCFS mpi_task_data
+    int crypt();
     
 };
 

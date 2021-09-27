@@ -4,9 +4,8 @@
 
 using namespace std;
 
-MPI_Task_Data :: MPI_Task_Data(int argc,char* argv[]){
+MPI_Task_Data :: MPI_Task_Data(){
 
-    MPI_Init(&argc, &argv); 
     struct timeval tv;
     gettimeofday(&tv,NULL);
     m_data_id = Time_Stamp(tv);
@@ -16,14 +15,13 @@ MPI_Task_Data :: MPI_Task_Data(int argc,char* argv[]){
     m_key = (char*)malloc(sizeof(char)*KEY_LENGTH_MAX);
     m_text_data = (char*)malloc(sizeof(char)*TEXT_LENGTH_MAX);
 
+
     MPI_Comm_rank(MPI_COMM_WORLD, &m_processor_id);
     MPI_Comm_size(MPI_COMM_WORLD, &m_processor_num);
     m_distribute_id = 0;
     m_gather_id = 1;
 
-
     log_create();
-
 }
 
 
@@ -78,11 +76,12 @@ MPI_Task_Data& MPI_Task_Data :: operator=(MPI_Task_Data& mpi_task_data){
 }
 
 MPI_Task_Data :: ~MPI_Task_Data(){
+	
     free(m_key);
     free(m_text_data);
     free(m_mpi_data_send);
     free(m_mpi_data_recv);
-    MPI_Finalize(); 
+    
     log_quit();
     
 }
@@ -92,87 +91,83 @@ int MPI_Task_Data :: distribute(){
     int tag;
     int end_sign_num;
     if(m_dis_alg_type==Alg_FCFS){
-        if(m_processor_id==m_distribute_id){
-	    m_dest_id=2;
-	    m_loop_num=1;
-	    data_length=0;
-	    end_sign_num=0;
-	// send key
-	    while(m_loop_num!=2){
-                memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
-		memcpy(m_mpi_data_send, m_key, m_key_length);
+	    
+        m_dest_id=2;
+    	m_loop_num=1;
+    	data_length=0;
+    	end_sign_num=0;
 
-		tag=m_loop_num*TAG_MATRIX+m_dest_id;
+    	// send key
+	while(m_loop_num!=2){
+	    memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
+    	    memcpy(m_mpi_data_send, m_key, m_key_length);
 
-		MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
+    	    tag=m_loop_num*TAG_MATRIX+m_dest_id;
 
-	        dest_calculate();
-	    }
-	// send data
-	    while(data_length<m_text_data_length){
-	        memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
-		memcpy(m_mpi_data_send, m_text_data+data_length, FCFS_4096);
+	    MPI_Send(m_mpi_data_send, m_key_length, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
+//	    MPI_Isend(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD,m_mpi_request);
+//	    MPI_Wait(m_mpi_request,&m_mpi_status);
 
-		tag=m_loop_num*TAG_MATRIX+m_dest_id;
+    	    dest_calculate();
+    	}
 
-		MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
- 
-		data_length=data_length+FCFS_4096;
-		dest_calculate();
-	    }
+    	// send data
+	while(data_length<m_text_data_length){
+	    memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
+    	    memcpy(m_mpi_data_send, m_text_data+data_length, FCFS_4096);
 
-	// send end_sign
-	    while(end_sign_num<m_processor_num-2){
-	        memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
+    	    tag=m_loop_num*TAG_MATRIX+m_dest_id;
+
+	    MPI_Send(m_mpi_data_send, FCFS_4096, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
+	    printf("distribute_data_send:loop:%d,dest:%d\n",m_loop_num,m_dest_id);
+//	    MPI_Isend(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD,m_mpi_request);
+//    	    MPI_Wait(m_mpi_request,&m_mpi_status);
+
+    	    data_length=data_length+FCFS_4096;
+    	    dest_calculate();
+    	}
+
+    	// send end_sign
+	while(end_sign_num<m_processor_num-2){
+	    memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
 		
-		tag=m_loop_num*TAG_MATRIX+m_dest_id;
-		MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
-		dest_calculate();
-	    }
-	    log_info(DIST_LOG);
-	}
-        
-        if(m_processor_id==m_gather_id){
-	    ;	
-	}
-	
-	if((m_processor_id!=m_distribute_id)&&(m_processor_id!=m_gather_id)){
-	    ;
-	}
+    	    tag=m_loop_num*TAG_MATRIX+m_dest_id;
+    	    MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD);
+//    	    MPI_Isend(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD,m_mpi_request);
+//    	    MPI_Wait(m_mpi_request,&m_mpi_status);
 
+    	    dest_calculate();
+	    end_sign_num++;
+    	}
+    	log_info(DIST_LOG);
     }
-
 }
 
 int MPI_Task_Data :: gather(){
     if(m_dis_alg_type==Alg_FCFS){
 	int tag;
-	int data_length;
+	int data_length=0;
 	m_dest_id=2;
-	m_loop_num=1;
-       	if(m_processor_id==m_distribute_id){
-		;
-	}
-        
-	if(m_processor_id==m_gather_id){
-    	    while(1){
-	        tag=m_loop_num*TAG_MATRIX+m_dest_id;
-		MPI_Recv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD, &m_mpi_status);
-		if(m_mpi_data_recv[0]==0){
-		    break;
-		}
-		memcpy(m_text_data+data_length, m_mpi_data_recv, FCFS_4096);
-		data_length=data_length+FCFS_4096;
-		dest_calculate();
-	    }
-	    log_info(GATH_LOG);
-    	}
-	
-	if((m_processor_id!=m_distribute_id)&&(m_processor_id!=m_gather_id)){
-		;
-	}
-    }
+	m_loop_num=2;
+    	    
+	while(1){
+	    tag=m_loop_num*TAG_MATRIX+m_dest_id;
 
+	    MPI_Recv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD, &m_mpi_status);
+	    printf("gather_recv_data:loop:%d:%d\n",m_loop_num,m_mpi_data_recv[0]);
+//	    MPI_Irecv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_dest_id, tag, MPI_COMM_WORLD, m_mpi_request);
+//	    MPI_Wait(m_mpi_request,&m_mpi_status);
+
+	    if(m_mpi_data_recv[0]==0){
+		printf("loop:%d,0\n",m_loop_num);
+		break;
+	    }
+	    memcpy(m_text_data+data_length, m_mpi_data_recv, FCFS_4096);
+	    data_length=data_length+FCFS_4096;
+	    dest_calculate();
+	}
+	log_info(GATH_LOG);
+    }
 
 }
 
@@ -180,42 +175,44 @@ int MPI_Task_Data :: gather(){
 int MPI_Task_Data :: recv_send_task_data(){
     if(m_dis_alg_type==Alg_FCFS){
 	int tag;
+	int recv_length;
 	m_loop_num=1;
-        if(m_processor_id==m_distribute_id){
-	    ;	
-	} 
 
-	if(m_processor_id==m_gather_id){
-	    ;
-	}
+    	// recv key
+ 	tag=m_loop_num*TAG_MATRIX+m_processor_id;
+	recv_length=MPI_Recv(m_mpi_data_recv,m_key_length , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, &m_mpi_status);    
+//	MPI_Irecv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, m_mpi_request); 
+//	MPI_Wait(m_mpi_request,&m_mpi_status);
 
-	if((m_processor_id!=m_distribute_id)&&(m_processor_id!=m_gather_id)){
-	// recv key
-	    tag=m_loop_num*TAG_MATRIX+m_processor_id;
-	    MPI_Recv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, &m_mpi_status);    
-	    memcpy(m_key,m_mpi_data_recv,m_key_length);
-	    m_loop_num++;
+	memcpy(m_key,m_mpi_data_recv,m_key_length);
+	printf("2-Recv:%d:%d\n",tag,recv_length);
+	m_loop_num++;
 	// recv data
-	    while(1){
-	        tag=m_loop_num*TAG_MATRIX+m_processor_id;
-		MPI_Recv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, &m_mpi_status);
-		if(m_mpi_data_recv[0]==0){
-	            memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
-		    MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD);
-		    break; // data_end
-		}
-		handle();
-		MPI_Send(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_gather_id, tag, MPI_COMM_WORLD);
-		m_loop_num++;
+	
+	while(1){
+	    tag=m_loop_num*TAG_MATRIX+m_processor_id;
+	    MPI_Recv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, &m_mpi_status);
+	    printf("dest_recv_data:loop:%d\n",m_loop_num);
+//	    MPI_Irecv(m_mpi_data_recv,RECV_LENGTH_MAX , MPI_CHAR, m_distribute_id, tag, MPI_COMM_WORLD, m_mpi_request);
+//	    MPI_Wait(m_mpi_request,&m_mpi_status);
+	    if(m_mpi_data_recv[0]==0){
+	        memset(m_mpi_data_send, 0, SEND_LENGTH_MAX);
+		MPI_Send(m_mpi_data_send, FCFS_4096, MPI_CHAR, m_gather_id, tag, MPI_COMM_WORLD);
+		break; // data_end
 	    }
-	}
-    
+	    handle();
+	    MPI_Send(m_mpi_data_send, FCFS_4096, MPI_CHAR, m_gather_id, tag, MPI_COMM_WORLD);
+	    printf("dest_send_data:loop:%d:%d\n",m_loop_num,m_mpi_data_send[0]);
+//	    MPI_Isend(m_mpi_data_send, SEND_LENGTH_MAX, MPI_CHAR, m_gather_id, tag, MPI_COMM_WORLD,m_mpi_request);
+//	    MPI_Wait(m_mpi_request,&m_mpi_status);
+	    m_loop_num++;
+	}	
+	log_info(HAND_LOG);
     }
-
 }
 
 int MPI_Task_Data :: handle(){
-    memcpy(m_mpi_data_recv,m_mpi_data_send,SEND_LENGTH_MAX);
+    memcpy(m_mpi_data_send,m_mpi_data_recv,FCFS_4096);
     log_info(HAND_LOG);
 }
 
@@ -297,8 +294,8 @@ int MPI_Task_Data :: log_info(LOG_TYPE log_type){
 }
 
 int MPI_Task_Data :: log_create(){
-    char file_name[100];
-    snprintf(file_name,sizeof(file_name), "%s%lu.log", MPI_RSA_LOG , m_data_id.m_data);
+    char file_name[200];
+    snprintf(file_name,sizeof(file_name), "%s%d-%lu.log",MPI_RSA_LOG , m_processor_id,m_data_id.m_data);
     m_log_file = fopen(file_name, "a+");
 }
 
@@ -310,36 +307,54 @@ int MPI_Task_Data :: log_quit(){
 
 
 int MPI_Task_Data :: init_random(){
+    
     int rand_num;
 
-    m_dis_alg_type = Alg_FCFS;
+    if(m_processor_id==m_distribute_id){
+        m_dis_alg_type = Alg_FCFS;
 
-    m_dest_id = -1;
-    m_loop_num = 0;
+    	// key length 2048
+	m_key_length = 1024;
+    	for(int i=0;i<m_key_length;i++){
+	    rand_num=rand()%16;
+    	    if(rand_num<10){
+	        m_key[i]='0'+rand_num;
+    	    }
+    	    else {
+		m_key[i]='A'+rand_num-10;
+    	    }
+    	}
 
-    // key length 2048
-    m_key_length = 1024;
-    for(int i=0;i<m_key_length;i++){
-        rand_num=rand()%16;
-	if(rand_num<10){
-	    m_key[i]='0'+rand_num;
-	}
-	else {
-	    m_key[i]='A'+rand_num-10;
-	}
+    	m_text_data_length = 40960;
+    	for(int i=0;i<m_text_data_length;i++){
+	    rand_num=rand()%16;
+    	    if(rand_num<10){
+		m_text_data[i]='0'+rand_num;
+    	    }
+    	    else {
+		m_text_data[i]='A'+rand_num-10;
+    	    }
+    	}
+    	log_info(INIT_LOG);
     }
 
-    m_text_data_length = 40960;
-    for(int i=0;i<m_text_data_length;i++){
-	rand_num=rand()%16;
-	if(rand_num<10){
-	    m_text_data[i]='0'+rand_num;
-	}
-	else {
-	    m_text_data[i]='A'+rand_num-10;
-	}
+    else{
+        m_dis_alg_type = Alg_FCFS; 
+	m_key_length=1024;
     }
 
-    log_info(INIT_LOG);
+}
 
+int MPI_Task_Data :: crypt(){
+    if(m_processor_id==m_distribute_id){
+	distribute();
+    }
+
+    if(m_processor_id==m_gather_id){
+	gather();
+    }
+
+    if(m_processor_id>=2){
+	recv_send_task_data();
+    }
 }

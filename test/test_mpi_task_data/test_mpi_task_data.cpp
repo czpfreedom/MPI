@@ -6,11 +6,15 @@
 using namespace std;
 
 int main(int argc,char* argv[]){
-//    MPI_Init(&argc, &argv);
-    MPI_Task_Data mpi_task_data(argc,argv);
+    MPI_Init(&argc, &argv);
+
+    printf("1\n");    
+    
+    MPI_Task_Data mpi_task_data;
     mpi_task_data.init_random();
-    mpi_task_data.distribute();
-//    mpi_task_data.recv_send_task_data();
-//    mpi_task_data.gather();
+    
+    mpi_task_data.crypt();
+    
+    MPI_Finalize();
 
 }
