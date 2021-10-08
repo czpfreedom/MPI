@@ -3,6 +3,7 @@
 MPI_RSA_PATH=/home/nx2/mpi_rsa
 MPI_PATH=/usr/local/mpich
 
+RSA_PATH=/home/nx2/rsa_final
 
 DIR_INC = $(MPI_RSA_PATH)/include
 DIR_SRC = $(MPI_RSA_PATH)/src
@@ -14,6 +15,9 @@ DIR_LOG = $(MPI_RSA_PATH)/log
 MPI_INC=$(MPI_PATH)/include
 MPI_LIB=$(MPI_PATH)/lib
 
+RSA_INC = $(RSA_PATH)/include
+RSA_LIB = $(RSA_PATH)/lib/rsa_final.a
+
 MPI_RSA_LIB = $(DIR_LIB)/libmpirsa.so
 
 CC=gcc
@@ -21,7 +25,7 @@ CXX=g++
 MPICXX =mpic++
 
 INC=-I$(DIR_INC) -I$(MPI_INC)
-LIB=-L$(DIR_LIB) -lmpirsa -L$(MPI_LIB) -lmpi
+LIB=-L$(DIR_LIB) -L$(MPI_LIB) -lmpi
 
 CC_SRC= $(wildcard ${DIR_SRC}/*.c)
 CC_OBJ = $(patsubst %.c,${DIR_OBJ}/%.o,$(notdir ${CC_SRC}))

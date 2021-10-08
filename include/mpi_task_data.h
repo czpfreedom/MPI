@@ -1,10 +1,10 @@
 #ifndef MPI_TASK_DATA_H
 #define MPI_TASK_DATA_H
 
-#include "time_stamp.h"
+#include "mpi_rsa_time_stamp.h"
 #include "mpi.h"
-#include "stdio.h"
 #include "mpi_log.h"
+#include "stdio.h"
 
 
 #define KEY_LENGTH_MAX 10000
@@ -14,6 +14,9 @@
 #define TAG_MATRIX 1000
 #define FCFS_4096  4096
 
+namespace namespace_mpi_rsa{
+
+
 typedef enum dis_alg_type{
     Alg_No_Distribute=1,
     Alg_FCFS,
@@ -22,7 +25,7 @@ typedef enum dis_alg_type{
 
 
 class MPI_Task_Data{
-
+	
 public:
 
     Dis_Alg_Type m_dis_alg_type; 
@@ -70,9 +73,12 @@ public:
     int log_quit();
 
 // for a test, deleted when     
+
     int init_random(); //just for test, init a FCFS mpi_task_data
     int crypt();
-    
+
 };
+
+}
 
 #endif

@@ -1,9 +1,9 @@
-#include "time_stamp.h"
+#include "mpi_rsa_time_stamp.h"
 #include "stdio.h"
 #include "string.h"
 #include "iostream"
 
-using namespace std;
+using namespace namespace_mpi_rsa;
 
 int main(){
     

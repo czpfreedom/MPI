@@ -2,10 +2,12 @@
 #include "stdlib.h"
 #include "string.h"
 
+namespace namespace_mpi_rsa {
+
 Mpi_Crypt_Data ::  Mpi_Crypt_Data(char* data, int data_length){
     struct timeval tv;
     gettimeofday(&tv,NULL);
-    m_time_stamp =Time_Stamp(tv);
+    m_time_stamp = * new Time_Stamp(tv);
     m_data_length =data_length;
     m_data = (char *)malloc(sizeof(char)*m_data_length);
     memcpy(m_data,data,data_length);
@@ -28,4 +30,6 @@ Mpi_Crypt_Data& Mpi_Crypt_Data :: operator=(Mpi_Crypt_Data& mpi_crypt_data){
 
 Mpi_Crypt_Data :: ~Mpi_Crypt_Data(){
     free(m_data);
+}
+
 }
