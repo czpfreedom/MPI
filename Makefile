@@ -3,7 +3,7 @@
 MPI_RSA_PATH=/home/nx2/mpi_rsa
 MPI_PATH=/usr/local/mpich
 
-RSA_PATH=/home/nx2/rsa_final
+RSA_PATH=/home/nx2/rsa_final_new
 
 DIR_INC = $(MPI_RSA_PATH)/include
 DIR_SRC = $(MPI_RSA_PATH)/src
@@ -18,14 +18,16 @@ MPI_LIB=$(MPI_PATH)/lib
 RSA_INC = $(RSA_PATH)/include
 RSA_LIB = $(RSA_PATH)/lib/rsa_final.a
 
+CUDA_INC = /usr/local/cuda-10.2/targets/aarch64-linux/include/
+
 MPI_RSA_LIB = $(DIR_LIB)/libmpirsa.so
 
 CC=gcc
 CXX=g++
 MPICXX =mpic++
 
-INC=-I$(DIR_INC) -I$(MPI_INC)
-LIB=-L$(DIR_LIB) -L$(MPI_LIB) -lmpi
+INC=-I$(DIR_INC) -I$(MPI_INC) -I$(RSA_INC) -I$(CUDA_INC)
+LIB=-L$(DIR_LIB) -L$(MPI_LIB) -lmpi -L /usr/local/cuda-10.2/targets/aarch64-linux/lib/ -lcudadevrt -lcudart -lstdc++ 
 
 CC_SRC= $(wildcard ${DIR_SRC}/*.c)
 CC_OBJ = $(patsubst %.c,${DIR_OBJ}/%.o,$(notdir ${CC_SRC}))
@@ -36,7 +38,7 @@ CXX_OBJ = $(patsubst %.cpp,${DIR_OBJ}/%.o,$(notdir ${CXX_SRC}))
 TEST_TIME_STAMP=$(DIR_TEST)/test_time_stamp
 TEST_MPI_TASK_DATA = $(DIR_TEST)/test_mpi_task_data
 
-$(MPI_RSA_LIB) : $(CXX_OBJ)
+$(MPI_RSA_LIB) : $(CXX_OBJ) $(RSA_LIB)
 	$(MPICXX) -shared $^ -o $@
 
 $(DIR_OBJ)/%.o: $(DIR_SRC)/%.cpp

@@ -5,32 +5,21 @@
 #include "mpi.h"
 #include "mpi_log.h"
 #include "stdio.h"
-
-
-#define KEY_LENGTH_MAX 10000
-#define TEXT_LENGTH_MAX 100000
-#define SEND_LENGTH_MAX 90000
-#define RECV_LENGTH_MAX 90000
-#define TAG_MATRIX 1000
-#define FCFS_4096  4096
+#include "rsa_final.h"
 
 namespace namespace_mpi_rsa{
-
-
-typedef enum dis_alg_type{
-    Alg_No_Distribute=1,
-    Alg_FCFS,
-    Alg_MEAN
-}Dis_Alg_Type;
-
 
 class MPI_Task_Data{
 	
 public:
 
+    unsigned long m_task_id;
     Dis_Alg_Type m_dis_alg_type; 
+    Handle_Alg_Type m_handle_alg_type;
+    int m_block_length;
 
-    Time_Stamp m_data_id;
+    Time_Stamp m_time_stamp;
+
     int m_processor_id;
     int m_processor_num;
     int m_distribute_id;
@@ -42,20 +31,20 @@ public:
     MPI_Status m_mpi_status;
     MPI_Request *m_mpi_request;
 
-    char* m_key;
-    int m_key_length;
-    char *m_text_data;
+// first half key is e and the other half is n    
+    char m_key[KEY_LENGTH_MAX];
+    char m_text_data[TEXT_LENGTH_MAX];
+    char m_mpi_data_send[SEND_LENGTH_MAX];
+    char m_mpi_data_recv[RECV_LENGTH_MAX];
+    
     int m_text_data_length;
-    char* m_mpi_data_send;
-    int m_mpi_data_send_length;
-    char* m_mpi_data_recv;
-    int m_mpi_data_recv_length;
 
-    FILE *m_log_file;
+    namespace_rsa_final :: CRT_N m_crt_n;
+    namespace_rsa_final ::BN_WORD m_bn_e;
+
+    char m_log_file_name[LOG_FILE_NAME_LENGTH]; 
 
     MPI_Task_Data();
-//    MPI_Task_Data(int argc,char* argv[]);
-
     MPI_Task_Data(MPI_Task_Data& mpi_task_data);
     MPI_Task_Data& operator=(MPI_Task_Data& mpi_task_data);
     ~MPI_Task_Data();
@@ -64,20 +53,22 @@ public:
     int gather();
     int recv_send_task_data();
 
-    int handle();
+    int key_handle();
+    int data_handle();
 
     int dest_calculate();
 
-    int log_create();
     int log_info(LOG_TYPE log_type);
-    int log_quit();
+    int log_info(LOG_TYPE log_type, DATA_TYPE data_type);
 
 // for a test, deleted when     
 
-    int init_random(); //just for test, init a FCFS mpi_task_data
+    int init_random(Handle_Alg_Type handle_alg_type, Dis_Alg_Type dis_alg_type, int block_length); //just for test, init a FCFS mpi_task_data
     int crypt();
 
 };
+
+//int HANDLE_CRT_MOD_EXP(char *a, char *result, CRT_N crt_n, int data_length );
 
 }
 
