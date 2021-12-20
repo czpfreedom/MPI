@@ -7,9 +7,9 @@ namespace namespace_mpi_rsa{
 /*Config DIstribute****************************************/
 /**********************************************************/
 
-#define FCFS_1024  1024
-#define FCFS_2048  2048
-#define FCFS_4096  4096
+const int FCFS_1024 = 1024;
+const int FCFS_2048 = 2048;
+const int FCFS_4096 = 4096;
 
 typedef enum dis_alg_type{
     Alg_No_Distribute=1,
@@ -31,11 +31,11 @@ typedef enum handle_alg_type{
 /*Config LOG***********************************************/
 /**********************************************************/
 
-#define MPI_RSA_LOG "/home/nx2/mpi_rsa/log/" 
+#define MPI_RSA_LOG "/home/nx2/mpi_rsa/log" 
 
-#define LOG_FILE_NAME_LENGTH 128
+const int LOG_FILE_NAME_LENGTH = 128;
 
-#define LOG_INFO_LENGTH_MAX 100000
+const int LOG_INFO_LENGTH_MAX = 100000;
 
 typedef enum log_type{
 //operation
@@ -50,8 +50,6 @@ typedef enum log_type{
     QUIT_LOG,    //delete mpi_data_task
     INIT_LOG     // init something for test
 }LOG_TYPE;
-
-
 
 /**********************************************************/
 /*TASK MESSAGE Deconstruction******************************/
@@ -70,22 +68,22 @@ unsigned long:
 /**********************************************************/
 
 //     0-1023:KEY_E
-#define E_TOP 0
+const int E_TOP=0;
 
 //  1024-2047:KEY_N 
-#define N_TOP 1024
+const int N_TOP=1024;
 
 
 /**********************************************************/
 /*Config TASK_DATA*****************************************/
 /**********************************************************/
 
-#define CRYPT_LENGTH 512
-#define KEY_LENGTH_MAX 4096
-#define TEXT_LENGTH_MAX 80000
-#define SEND_LENGTH_MAX 80000
-#define RECV_LENGTH_MAX 80000
-#define TAG_MATRIX 1000
+const int CRYPT_LENGTH = 512;
+const int KEY_LENGTH_MAX = 4096;
+const int TEXT_LENGTH_MAX = 80000;
+const int SEND_LENGTH_MAX = 80000;
+const int RECV_LENGTH_MAX = 80000;
+const int TAG_MATRIX = 1000;
 
 typedef enum data_type{
     KEY_DATA=1,
@@ -97,7 +95,7 @@ typedef enum data_type{
 /*Config TASK_DATA*****************************************/
 /**********************************************************/
 
-#define CRT_2048 512
+const int CRT_2048 = 512;
 
 /**********************************************************/
 

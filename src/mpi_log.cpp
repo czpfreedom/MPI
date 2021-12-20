@@ -14,7 +14,7 @@ int MPI_Task_Data :: log_info(LOG_TYPE log_type){
     FILE *log_file;
 
     if(log_type==CREATE_LOG){
-	snprintf(m_log_file_name,LOG_FILE_NAME_LENGTH, "%s%d:%lu.log",MPI_RSA_LOG , m_processor_id,m_task_id);
+	snprintf(m_log_file_name,LOG_FILE_NAME_LENGTH, "%s/%d:%lu.log",MPI_RSA_LOG , m_processor_id,m_task_id);
 
 	log_file = fopen(m_log_file_name, "a+");
 	snprintf(log_info_data, LOG_INFO_LENGTH_MAX, "  Operation:CREATE \n  ProcessorId: %d  \n  ProcessorNum: %d  \n  DistributeId: %d\n  GatherId: %d\n\n-----------------------------------------\n\n", m_processor_id, m_processor_num, m_distribute_id, m_gather_id);
